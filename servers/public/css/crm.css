@@ -1,0 +1,172 @@
+/* * crm.css - 智能指挥部专用样式
+ * 修复：移除 @apply，使用原生 CSS 以兼容所有浏览器
+ */
+
+/* === 滚动条美化 === */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* === 左侧列表项 === */
+.client-item {
+    padding: 1rem;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    user-select: none;
+}
+.client-item:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+.client-item.active {
+    border-left-color: #6366f1; /* indigo-500 */
+    background-color: rgba(99, 102, 241, 0.1);
+}
+
+/* 在线呼吸灯 */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #64748b;
+    box-shadow: 0 0 0 2px #0f172a;
+    display: inline-block;
+}
+.status-dot.online {
+    background-color: #10b981;
+    box-shadow: 0 0 0 2px #0f172a, 0 0 8px rgba(16, 185, 129, 0.6);
+    animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* === 聊天记录气泡 === */
+.chat-bubble {
+    padding: 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem; /* text-xs */
+    line-height: 1.625;
+    max-width: 85%;
+    position: relative;
+    margin-bottom: 0.75rem;
+    word-break: break-word;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.chat-bubble.client {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    border-top-left-radius: 0;
+    align-self: flex-start;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.chat-bubble.me {
+    background-color: rgba(79, 70, 229, 0.2);
+    color: #e0e7ff;
+    border-top-right-radius: 0;
+    align-self: flex-end;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+.chat-meta {
+    display: block;
+    font-size: 0.6rem; /* text-[9px] */
+    color: #64748b;
+    margin-top: 0.25rem;
+    text-align: right;
+    opacity: 0.7;
+}
+
+/* === 意向雷达参数槽 === */
+.radar-slot {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 4rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+}
+.radar-slot.filled {
+    border-color: rgba(16, 185, 129, 0.3);
+    background-color: rgba(16, 185, 129, 0.05);
+}
+.radar-slot .label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+}
+.radar-slot .value {
+    font-size: 0.875rem;
+    font-family: monospace;
+    font-weight: 900;
+    color: #e2e8f0;
+    margin-top: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.radar-slot .bar {
+    width: 100%;
+    height: 0.25rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    margin-top: auto;
+    overflow: hidden;
+}
+.radar-slot .bar-fill {
+    height: 100%;
+    background-color: #10b981;
+    width: 0;
+    transition: width 1s ease-out;
+}
+
+/* === AI 按钮动效 === */
+.btn-ai {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+.btn-ai:active {
+    transform: scale(0.95);
+}
+.btn-ai::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: 0.5s;
+}
+.btn-ai:hover::after {
+    left: 100%;
+}
+
+/* === 标签样式 === */
+.tag {
+    font-size: 0.6rem;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+    display: inline-block;
+}

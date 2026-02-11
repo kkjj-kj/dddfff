@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DafenArts BOSS 外贸油画利润精算系统 v1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style></style>
+</head>
+<body>
+<!-- 主题切换按钮 -->
+<a href="client_crm.html">
+    <div class="theme-toggle" id="themeToggle" onclick="APP.UIManager.toggleTheme()">
+        <i class="fas fa-moon" id="themeIcon"></i>
+    </div>
+
+</a>
+<!-- 左侧：全球底账中控 -->
+<aside class="sidebar flex flex-col p-6">
+    <div class="mb-10 flex items-center gap-4">
+        <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center font-black text-2xl italic shadow-2xl shadow-indigo-500/40 text-white">
+            D
+        </div>
+        <div>
+            <h1 class="text-xl font-black tracking-tighter uppercase italic leading-none">DafenArts</h1>
+            <span class="text-[9px] font-black text-indigo-500 uppercase tracking-[0.2em]">BOSS V1</span>
+        </div>
+    </div>
+
+    <div class="space-y-8">
+        <!-- 汇率 -->
+        <section>
+            <label class="label-sm tip-box text-sky-200">
+                实时汇率中枢 (USD/CNY)
+                <i class="fas fa-info-circle text-[10px] ml-1"></i>
+                <span class="tip-content">每日更新，影响所有美元换算人民币的计算</span>
+            </label>
+            <input type="number" min=0 id="exRate" value="7" step="0.01"
+                   class="input-dark mono text-indigo-400 text-lg">
+        </section>
+
+        <!-- 供应链预设 -->
+        <section>
+            <label class="label-sm">供应链尺寸预设</label>
+            <select id="sizePreset" class="input-dark text-xs mb-3 font-mono">
+                <optgroup label="📍 纯画心 (Rolled) - 轻小件">
+                    <option value="20x24_rolled">20x24" (50x60cm) - ￥65 | 0.6kg</option>
+                    <option value="24x36_rolled" selected>24x36" (60x90cm) - ￥119 | 1.0kg</option>
+                    <option value="30x40_rolled">30x40" (75x100cm) - ￥185 | 1.5kg</option>
+                    <option value="36x48_rolled">36x48" (90x120cm) - ￥260 | 2.0kg</option>
+                    <option value="48x72_rolled">48x72" (120x180cm) - ￥450 | 3.5kg</option>
+                </optgroup>
+                <optgroup label="🖼️ 带内框 (Framed) - 抛货/材积重">
+                    <option value="20x24_framed">20x24" (50x60cm) - ￥85 | 6.0kg</option>
+                    <option value="24x36_framed">24x36" (60x90cm) - ￥149 | 12.0kg</option>
+                    <option value="30x40_framed">30x40" (75x100cm) - ￥225 | 18.0kg</option>
+                    <option value="36x48_framed">36x48" (90x120cm) - ￥320 | 28.0kg</option>
+                    <option value="48x72_framed">48x72" (120x180cm) - ￥550 | 55.0kg</option>
+                </optgroup>
+                <option value="custom">--- 自定义尺寸录入 ---</option>
+            </select>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[9px] font-black text-sky-200 uppercase mb-1 block tip-box text-sky-200">
+                        单幅进价 (￥)
+                        <i class="fas fa-info-circle text-[10px] ml-1"></i>
+                        <span class="tip-content">画布采购成本，尺寸选择后自动填充，可修改</span>
+                    </label>
+                    <input type="number" min=0 id="baseCost" value="119" step="1" class="input-dark mono text-xs">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-sky-200 uppercase mb-1 block tip-box text-sky-200">
+                        均重 (KG)
+                        <i class="fas fa-info-circle text-[10px] ml-1"></i>
+                        <span class="tip-content">包含木架包装后的总重量</span>
+                    </label>
+                    <input type="number" min=0 id="weight" step="0.1" value="4.0" class="input-dark mono text-xs">
+                </div>
+            </div>
+        </section>
+
+        <!-- 物流与杂费 -->
+        <section class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="label-sm tip-box text-sky-200">
+                    国际运费 (￥/KG)
+                    <i class="fas fa-info-circle text-[10px] ml-1 opacity-50"></i>
+                    <span class="tip-content">货代收取的每公斤费用，通常包含空运费+清关费+派送费。</span>
+                </label>
+                <input type="number" min=0 id="shipRate" value="52" step="0.1" class="input-dark mono">
+            </div>
+            <div>
+                <label class="label-sm tip-box text-sky-200">
+                    包装杂费 (￥)
+                    <i class="fas fa-info-circle text-[10px] ml-1 opacity-50"></i>
+                    <span class="tip-content">每幅画的隐性物料成本：木条、卷筒、气泡膜、胶带等。</span>
+                </label>
+                <input type="number" min=0 id="packCost" value="10" step="1" class="input-dark mono">
+            </div>
+            <div class="col-span-2">
+                <label class="label-sm tip-box text-sky-200">
+                    国内快递成本 (￥/幅)
+                    <i class="fas fa-info-circle text-[10px] ml-1 opacity-50"></i>
+                    <span class="tip-content">从大芬村画室发货到深圳/广州货代仓库的顺丰/货拉拉费用。</span>
+                </label>
+                <input type="number" min=0 id="domesticShipping" value="15" step="1" class="input-dark mono">
+            </div>
+        </section>
+
+        <!-- 财务手续费 -->
+        <section class="pt-6 border-t border-white/5">
+            <h4 class="label-sm text-slate-400 mb-3">财务手续费 %</h4>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[9px] font-black text-sky-200 uppercase mb-1 block">支付手续费</label>
+                    <input type="number" min=0 id="feeRate" value="3.8" step="0.1" class="input-dark mono text-xs">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-sky-200 uppercase mb-1 block">结汇损失</label>
+                    <input type="number" min=0 id="lossRate" value="0.9" step="0.1" class="input-dark mono text-xs">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-emerald-400 uppercase mb-1 block tip-box text-emerald-400">
+                        CIP/DDP保险费 %
+                        <i class="fas fa-info-circle text-[10px] ml-1"></i>
+                        <span class="tip-content">仅在 CIP/DDP 模式下生效</span>
+                    </label>
+                    <input type="number" min=0 id="insuranceRate" value="0.5" step="0.1"
+                           class="input-dark mono text-xs text-emerald-400 border-emerald-500/30 bg-emerald-500/5">
+                </div>
+
+                <div>
+                    <label class="text-[9px] font-black text-emerald-400 uppercase mb-1 block tip-box text-emerald-400">
+                        投保加成 %
+                        <i class="fas fa-info-circle text-[10px] ml-1"></i>
+                        <span class="tip-content">通常按货值+运费的 110% 投保</span>
+                    </label>
+                    <input type="number" min=100 max=200 id="insuranceMarkup" value="110" step="10"
+                           class="input-dark mono text-xs text-emerald-400 border-emerald-500/30 bg-emerald-500/5">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-sky-200 uppercase mb-1 block">业务提成</label>
+                    <input type="number" min=0 id="commissionRate" value="2.0" step="0.1"
+                           class="input-dark mono text-xs">
+                </div>
+                <div>
+                    <label class="text-[9px] font-black text-sky-200 uppercase mb-1 block tip-box text-sky-200">
+                        报关比例 %
+                        <i class="fas fa-info-circle text-[10px] ml-1"></i>
+                        <span class="tip-content">实战报关优化比例，通常按70%申报以优化包税成本</span>
+                    </label>
+                    <input type="number" min=0 id="declareRate" value="70" step="1" class="input-dark mono text-xs">
+                </div>
+            </div>
+        </section>
+
+        <!-- 固定开支 -->
+        <section class="pt-6 border-t border-white/5 space-y-4">
+            <h4 class="label-sm text-slate-400">月度刚性经营开支</h4>
+            <div class="space-y-2">
+                <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
+                    <span class="text-xs font-bold text-sky-200">员工总工资</span>
+                    <input type="number" min=0 id="salary" value="0" step="100"
+                           class="w-20 bg-transparent text-left outline-none font-black text-xs">
+                </div>
+                <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
+                    <span class="text-xs font-bold text-sky-200">房租水电杂费</span>
+                    <input type="number" min=0 id="rent" value="0" step="500"
+                           class="w-20 bg-transparent text-left outline-none font-black text-xs">
+                </div>
+            </div>
+
+            <!-- 成本摘要 -->
+            <div class="mt-4 p-4 bg-indigo-500/5 rounded-xl border border-indigo-500/20">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-sky-200">单幅物理成本</span>
+                    <span class="text-sm font-black mono text-slate-200" id="unitPhysCost">￥0</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-sky-200">单幅总成本</span>
+                    <span class="text-sm font-black mono text-indigo-400" id="unitTotalCost">￥0</span>
+                </div>
+            </div>
+        </section>
+    </div>
+</aside>
+
+<!-- 主区：100% 全宽指挥台 -->
+<main class="main-content">
+    <!-- 第一行：战略 KPI 板块 -->
+    <header class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 min-w-0">
+        <div class="glass p-6 border-l-4 border-l-indigo-600 bg-gradient-to-br from-indigo-600/5 to-transparent">
+            <label class="label-sm tip-box text-indigo-400">
+                月利润目标 (￥)
+                <i class="fas fa-question-circle text-[10px] ml-1 opacity-50"></i>
+                <span class="tip-content">你本月想要赚到的【纯利润】目标。系统会根据它反推你需要卖多少画。</span>
+            </label>
+            <input type="number" min=0 id="targetProfit" value="1000000" step="10000"
+                   class="bg-transparent text-4xl font-black outline-none w-full border-b border-white/5 pb-2 stat-glow">
+        </div>
+        <div class="glass p-6 border-l-4 border-l-amber-500">
+            <p class="label-sm text-amber-500 tip-box">
+                需总销量 (幅)
+                <i class="fas fa-question-circle text-[10px] ml-1 opacity-50"></i>
+                <span class="tip-content">基于你的利润目标，计算出你需要卖出的画作数量。</span>
+            </p>
+            <div class="flex items-baseline gap-2">
+                <h2 class="text-4xl font-black mono" id="targetQty">0</h2>
+                <span class="text-[10px] font-black text-sky-200 uppercase" id="targetSource">基于建议价</span>
+            </div>
+            <div class="text-[10px] font-bold text-rose-500 mt-1 uppercase" id="qtyGapInfo"></div>
+            <div class="mt-4 w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                <div id="qtyProgress" class="h-full bg-amber-500 w-0 transition-all duration-1000"></div>
+            </div>
+        </div>
+        <div class="glass p-6 border-l-4 border-l-emerald-600">
+            <p class="label-sm text-emerald-500 tip-box">
+                动态建议 CPA
+                <i class="fas fa-question-circle text-[10px] ml-1 opacity-50"></i>
+                <span class="tip-content">
+                    Cost Per Action (单次成交成本)。<br>
+                    建议你给广告设置的出价上限。低于这个价，你才有得赚！
+                </span>
+            </p>
+            <h2 class="text-4xl font-black mono text-emerald-400" id="targetCPA">$ 0.0</h2>
+
+            <div class="mt-2 flex items-center justify-between border-t border-white/5 pt-2">
+                <span class="text-[9px] font-black text-sky-200 uppercase tracking-widest tip-box cursor-help">
+                    Max Ceiling
+                    <span class="tip-content">盈亏平衡线：如果广告费超过这个数，卖一单亏一单。</span>
+                </span>
+                <span class="text-xs font-black mono text-rose-400" id="cpaLimitInfo">$ 0.0</span>
+                <p class="text-[10px] text-sky-200 mt-1 font-black uppercase tracking-tighter">Remaining Ad Budget</p>
+            </div>
+        </div>
+        <div class="glass p-6 border-l-4 border-l-blue-600">
+            <p class="label-sm text-blue-500 tip-box">
+                达成目标总营收
+                <i class="fas fa-question-circle text-[10px] ml-1 opacity-50"></i>
+                <span class="tip-content">为了赚到目标利润，你账面上需要做到的总流水（销售额）。</span>
+            </p>
+            <h2 class="text-3xl font-black mono" id="targetRev">￥ 0</h2>
+            <p class="text-[10px] text-sky-200 mt-2 font-black uppercase tracking-widest">Target Revenue Flow</p>
+        </div>
+    </header>
+
+    <!-- 第二行：核心杀单报价与穿透分析 -->
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 mb-8 min-w-0">
+        <!-- 左侧：实时报价器与全球对比图 -->
+        <div class="xl:col-span-8 space-y-6 min-w-0">
+            <!-- 实时报价器 -->
+            <div class="glass p-8 relative min-w-0">
+                <!-- 报价器头部：FOB/DDP开关与成交按钮并排 -->
+                <div class="quote-header-controls mb-8 border-b border-white/5 pb-6">
+                    <div class="flex items-center gap-4">
+                        <h3 class="text-xl font-black italic uppercase tracking-tighter">Live Negotiator <span
+                                class="text-indigo-500">实时杀单报价</span></h3>
+                        <div id="modeIndicator" class="mode-indicator mode-none">标准模式</div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <!-- FOB开关 -->
+                        <div class="ddp-toggle-container">
+                            <label class="text-xs font-bold text-sky-200 uppercase">FOB 离岸模式</label>
+                            <input type="checkbox" id="isFOB" class="w-5 h-5 rounded-lg accent-blue-500 cursor-pointer">
+                        </div>
+                        <!-- CIP开关 -->
+                        <div class="ddp-toggle-container">
+                            <label class="text-xs font-bold text-sky-200 uppercase">CIP 运保</label>
+                            <input type="checkbox" id="isCIP"
+                                   class="w-5 h-5 rounded-lg accent-emerald-500 cursor-pointer">
+                        </div>
+                        <!-- DDP开关 -->
+                        <div class="ddp-toggle-container">
+                            <label class="text-xs font-bold text-sky-200 uppercase">DDP 包税模式</label>
+                            <input type="checkbox" id="isTax"
+                                   class="w-5 h-5 rounded-lg accent-indigo-500 cursor-pointer">
+                        </div>
+                        <!-- 成交按钮 -->
+                        <div class="deal-btn-container">
+                            <button class="btn btn-success" onclick="APP.UIManager.showDealModal()" id="dealBtn">
+                                <i class="fas fa-handshake"></i> 成交录入
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 min-w-0">
+                    <!-- 输入参数 -->
+                    <div class="space-y-6 min-w-0">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="label-sm mb-0">成交市场 (VAT)</label>
+
+                            <button onclick="ConfigManager.openModal()"
+                                    class="text-slate-500 hover:text-emerald-400 transition-colors text-xs"
+                                    title="配置全球税率与时区">
+                                <i class="fas fa-cog"></i> 配置
+                            </button>
+                        </div>
+
+                        <div class="relative">
+                            <select id="quoteCountry"
+                                    class="input-dark appearance-none cursor-pointer hover:border-indigo-500 transition-colors">
+                            </select>
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 text-indigo-500 pointer-events-none">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 min-w-0">
+                            <div>
+                                <label class="label-sm">订单数量</label>
+                                <input type="number" min=0 id="quoteQty" value="10" class="input-dark mono">
+                            </div>
+                            <div>
+                                <label class="label-sm">期望利润率 %</label>
+                                <input type="number" min=0 id="expMargin" value="35"
+                                       class="input-dark mono text-amber-500 text-lg">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="APP.UIManager.setMargin(30)"
+                                    class="btn-sm bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20">30%
+                            </button>
+                            <button onclick="APP.UIManager.setMargin(50)"
+                                    class="btn-sm bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20">50%
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 系统建议价格 -->
+                    <div class="bg-indigo-600/10 border border-indigo-500/20 rounded-3xl p-6 flex flex-col justify-center items-center text-center shadow-inner min-w-0">
+                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-4"
+                           id="suggestTitle">建议成交单价</p>
+                        <div class="text-6xl font-black mono stat-glow" id="suggestUSD">$0.0</div>
+                        <p class="text-xs text-slate-400 mt-4">建议订单总金额</p>
+                        <p class="text-2xl font-black mono text-emerald-400 mt-1" id="suggestTotalOrderUSD">$0.0</p>
+                    </div>
+
+                    <!-- 手动实测 -->
+                    <div class="bg-slate-900/60 rounded-3xl p-6 border border-white/10 shadow-2xl min-w-0">
+                        <label class="label-sm text-emerald-400 mb-4 flex justify-between">
+                            手动实测报价 (USD) <span class="animate-pulse">● LIVE TEST</span>
+                        </label>
+
+                        <!-- 手动报价输入组 -->
+                        <div class="manual-quote-group">
+                            <input type="number" min=0 max=10000000 id="manualUSD" placeholder="报价"
+                                   class="input-dark text-xl text-emerald-400 mono border-emerald-500/20">
+                            <button onclick="APP.UIManager.useSuggestPrice()"
+                                    class="btn btn-sm bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 whitespace-nowrap">
+                                <i class="fas fa-bolt"></i> 使用建议
+                            </button>
+                        </div>
+
+                        <div class="space-y-4 mt-6">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-black text-emerald-400 uppercase">单幅纯利:</span>
+                                <span class="text-xl font-black mono text-emerald-400" id="mNet">￥ 0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-black text-emerald-400 uppercase">实际利润率:</span>
+                                <span class="text-xl font-black mono text-emerald-400" id="mMargin">0%</span>
+                            </div>
+                            <div id="mStatus"
+                                 class="text-[10px] font-black uppercase text-center py-2 rounded-xl transition-all duration-300">
+                                ---
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 全球对比图 -->
+            <div class="glass p-6 h-[450px] flex flex-col min-w-0 chart-container">
+                <p class="label-sm mb-6 text-center text-sky-200 tracking-widest">Global Profit Index /
+                    投流获客价值分布</p>
+                <div class="flex-grow relative min-w-0">
+                    <canvas id="marketChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：定金红线与成本穿透 -->
+        <div class="xl:col-span-4 space-y-6 min-w-0">
+            <!-- 定金红线 -->
+            <div class="glass p-6 bg-gradient-to-br from-slate-900 to-indigo-900/30 border border-indigo-500/20 shadow-2xl relative overflow-hidden min-w-0">
+                <div class="absolute -right-6 -top-6 text-yellow-400/5 text-8xl"><i class="fas fa-shield-halved"></i>
+                </div>
+                <div class="flex justify-between items-center mb-6 relative z-10">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-vault text-yellow-500"></i>
+                        <h4 class="text-sm font-black uppercase italic tracking-wider">Deposit Safety 定金红线</h4>
+                    </div>
+                    <span id="depStatus"
+                          class="text-[9px] font-black px-3 py-1.5 rounded-full shadow-lg">CALCULATING</span>
+                </div>
+
+                <div class="space-y-6 relative z-10 min-w-0">
+                    <!-- 定金滑块 -->
+                    <div class="deposit-slider-container min-w-0">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-sky-200">定金比例</span>
+                            <span class="text-lg font-black mono text-yellow-400" id="depPercentDisplay">30%</span>
+                        </div>
+                        <input type="range" id="depPercentSlider" min="10" max="100" value="30" step="5"
+                               class="deposit-slider">
+                        <div class="flex justify-between text-xs text-sky-200 mt-1">
+                            <span>10%</span>
+                            <span>50%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+
+                    <!-- 定金金额 -->
+                    <div class="grid grid-cols-3 gap-4 min-w-0">
+                        <div>
+
+                            <p class="label-sm text-white/30 mb-2">应收定金总额 <span
+                                    class="text-sm text-sky-200">USD</span></p>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-2xl font-black mono text-yellow-500" id="depUSD">$0.0</span>
+
+                            </div>
+                            <p class="text-xs text-sky-200 mt-2" id="depCNY">≈ ￥0</p>
+                        </div>
+
+                        <div>
+                            <p class="label-sm text-white/30 mb-2">订单总金额 <span
+                                    class="text-sm text-sky-200">USD</span></p>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-2xl font-black mono text-red-500" id="orderTotalUSD">$0.0</span>
+
+                            </div>
+                            <p class="text-xs text-sky-200 mt-2" id="orderTotalCNY">≈ ￥0</p>
+                        </div>
+                        <div>
+                            <p class="label-sm text-white/30 mb-2">物理总成本 <span
+                                    class="text-sm text-sky-200">CNY</span></p>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-xl font-black mono" id="physTotal">￥0</span>
+
+                            </div>
+                            <p class="text-xs text-sky-200 mt-2">物料+物流+包装</p>
+                        </div>
+                    </div>
+
+                    <!-- 安全检测 -->
+                    <div class="bg-white/5 p-4 rounded-xl border border-white/10 min-w-0">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-bold text-slate-400">定金覆盖率</p>
+                                <p class="text-lg font-black mono" id="depCoverage">0%</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-sky-200 mb-1">安全阈值: 100%</p>
+                                <p class="text-[10px] text-sky-200">需覆盖物理成本</p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="coverage-bar" id="coverageBar"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 成本穿透明细 -->
+            <div class="glass p-6 min-w-0">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                    <h4 class="text-sm font-black uppercase tracking-[0.2em]">Cost Breakdown <span
+                            class="text-indigo-600">成本穿透</span></h4>
+                </div>
+
+                <div class="space-y-2 text-xs">
+                    <div class="group">
+                        <div class="flex justify-between items-center py-1">
+                            <span class="text-slate-400">画布进价 (Canvas)</span>
+                            <span class="font-mono text-slate-200" id="d_canvas">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1">
+                            <span class="text-slate-400">包装杂费 (Pack)</span>
+                            <span class="font-mono text-slate-200" id="d_pack">￥0</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center py-1 border-b border-white/5">
+                        <span class="text-xs text-amber-500/70">欧盟操作费 (EU Fee)</span>
+                        <span class="font-mono text-amber-500" id="totalEuFee">￥0</span>
+                    </div>
+
+                    <div class="flex justify-between items-center py-1 border-b border-white/5">
+                        <span class="text-xs text-emerald-500/70">物流保险费 (Ins.)</span>
+                        <span class="font-mono text-emerald-500" id="totalInsuranceCost">￥0</span>
+                    </div>
+
+                    <div class="border-t border-white/5 my-2 pt-2 group">
+                        <div class="flex justify-between items-center py-1">
+                            <span class="text-slate-400">国内路费 (Domestic)</span>
+                            <span class="font-mono text-slate-200" id="d_domestic">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1">
+                            <span class="text-slate-400 flex items-center gap-1">
+                                国际物流 (Int'l Ship)
+                                <i class="fas fa-plane text-[10px] text-sky-500/50"></i>
+                            </span>
+                            <span class="font-mono text-sky-300" id="d_shipping">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1" id="row_insurance">
+                            <span class="text-slate-400 text-emerald-500/80">🛡️ 运输保险 (Ins.)</span>
+                            <span class="font-mono text-emerald-500" id="d_insurance">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1" id="row_eu_fee">
+                            <span class="text-slate-400 text-amber-500/80">🇪🇺 欧盟操作费 (EU Fee)</span>
+                            <span class="font-mono text-amber-500" id="d_eu_fee">￥0</span>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-white/5 my-2 pt-2 group">
+                        <div class="flex justify-between items-center py-1">
+                            <span class="text-slate-400">支付/结汇损耗 (Fees)</span>
+                            <span class="font-mono text-orange-300" id="d_fee_total">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1">
+                            <span class="text-slate-400">预估税费 (DDP Tax)</span>
+                            <span class="font-mono text-rose-300" id="d_tax">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1">
+                            <span class="text-slate-400 flex items-center gap-1 tip-box">
+                                固定摊销 (Fixed/Unit)
+                                <i class="fas fa-info-circle text-[10px]"></i>
+                                <span class="tip-content">房租+工资分摊到单幅画的成本</span>
+                            </span>
+                            <span class="font-mono text-slate-500" id="d_fixed">￥0</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/5 rounded-lg p-3 mt-4 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-slate-300">单幅总成本</span>
+                            <span class="text-lg font-black mono text-indigo-400" id="d_totalCost">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-white/10">
+                            <span class="font-bold text-slate-300">单幅净利润</span>
+                            <span class="text-xl font-black mono text-emerald-400" id="d_net">￥0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第三行：财务月末对账核算 -->
+    <section class="glass p-8 border-t-8 border-t-emerald-600 shadow-2xl min-w-0">
+        <div class="flex items-center justify-between mb-8">
+            <h3 class="text-xl font-black uppercase tracking-[0.3em] italic flex items-center gap-4">
+                <i class="fas fa-file-invoice-dollar text-emerald-500"></i> Monthly Financial Recap <span
+                    class="text-indigo-500">月末财务对账复盘</span>
+            </h3>
+            <div class="flex gap-3">
+                <button onclick="APP.UIManager.exportCSV()" class="btn btn-sm bg-indigo-500/10 text-indigo-500"><i
+                        class="fas fa-file-export"></i>导出报表
+                </button>
+                <button onclick="APP.UIManager.exportFinancialCSV()"
+                        class="btn btn-sm bg-emerald-500/10 text-emerald-500">
+                    <i class="fas fa-file-invoice-dollar"></i>导出财务
+                </button>
+
+                <button onclick="APP.UIManager.clearMonthly()" class="btn btn-sm bg-rose-500/10 text-rose-500">
+                    <i class="fas fa-trash"></i> 清空本月
+                </button>
+            </div>
+        </div>
+        <div class="financial-dashboard grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 min-w-0">
+            <!-- 核心利润卡片 -->
+            <div class="glass p-6 border-l-4 border-l-emerald-600 bg-gradient-to-br from-emerald-600/5 to-transparent">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <p class="label-sm text-emerald-500">当月实际利润</p>
+                        <p class="text-[10px] text-slate-400 mt-1">基于已完成订单</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-emerald-400"></i>
+                    </div>
+                </div>
+                <h2 class="text-3xl font-black mono stat-glow" id="actualProfitDisplay">￥ 0</h2>
+                <div class="mt-2 text-xs text-slate-400" id="completedOrdersInfo">
+                    0个已完成订单
+                </div>
+            </div>
+
+            <!-- 待收款项卡片 -->
+            <div class="glass p-6 border-l-4 border-l-amber-500 bg-gradient-to-br from-amber-500/5 to-transparent">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <p class="label-sm text-amber-500">待收款项</p>
+                        <p class="text-[10px] text-slate-400 mt-1">已发货未收款</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                        <i class="fas fa-clock text-amber-400"></i>
+                    </div>
+                </div>
+                <h2 class="text-3xl font-black mono" id="pendingReceivables">$0</h2>
+                <div class="mt-2 text-xs text-slate-400" id="shippedUnpaidInfo">
+                    0个已发货订单
+                </div>
+            </div>
+
+            <!-- 预收账款卡片 -->
+            <div class="glass p-6 border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-500/5 to-transparent">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <p class="label-sm text-blue-500">预收账款</p>
+                        <p class="text-[10px] text-slate-400 mt-1">未发货已收款</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                        <i class="fas fa-box text-blue-400"></i>
+                    </div>
+                </div>
+                <h2 class="text-3xl font-black mono" id="advancePayments">$0</h2>
+                <div class="mt-2 text-xs text-slate-400" id="unshippedPaidInfo">
+                    0个待发货订单
+                </div>
+            </div>
+
+            <!-- 现金流健康度卡片 -->
+            <div class="glass p-6 border-l-4 border-l-purple-500 bg-gradient-to-br from-purple-500/5 to-transparent">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <p class="label-sm text-purple-500">现金流健康度</p>
+                        <p class="text-[10px] text-slate-400 mt-1">实时监控</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                        <i class="fas fa-heartbeat text-purple-400"></i>
+                    </div>
+                </div>
+                <div class="flex items-baseline gap-2">
+                    <h2 class="text-3xl font-black mono" id="cashflowHealth">0%</h2>
+                    <span class="text-xs" id="healthIndicator">-</span>
+                </div>
+                <div class="mt-2 text-xs" id="healthMessage">
+                    暂无数据
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 mb-8 min-w-0">
+            <!-- 支出录入 -->
+            <div class="space-y-6 relative min-w-0 col-span-2">
+                <p class="label-sm text-amber-500">Expense Audit (CNY 支出)</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-black text-sky-200 mb-1 block uppercase">月度广告支出（CNY）</label>
+                        <input type="number" min=0 id="actAd" placeholder="0" class="input-dark mono">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black text-sky-200 mb-1 block uppercase">代扣费用 (USD)</label>
+                        <input type="number" min=0 id="actDeductions" placeholder="0" class="input-dark mono">
+                    </div>
+                </div>
+                <div class="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                    <div>
+                        <p class="label-sm mb-0">业务提成 (<span id="commRateDisplay">0</span>)</p>
+                        <p class="text-[9px] text-sky-200 italic uppercase">基于净利润</p>
+                    </div>
+                    <span class="text-2xl font-black mono text-emerald-500" id="actComm">￥ 0</span>
+                </div>
+            </div>
+
+            <!-- 最终业绩 -->
+            <div class="bg-emerald-600/5 rounded-[2rem] p-8 border border-emerald-500/20 flex flex-col justify-center items-center text-center relative overflow-hidden min-w-0">
+                <p class="text-xs font-black text-emerald-400 uppercase tracking-[0.4em] mb-4">Monthly Final Net
+                    Profit</p>
+                <div class="text-6xl font-black mono mb-6 stat-glow" id="finalProfit">￥ 0</div>
+
+                <div class="w-full space-y-4 min-w-0">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-sky-200">目标完成度</span>
+                        <span class="font-bold text-emerald-500" id="completionLabel">0%</span>
+                    </div>
+                    <div id="targetBar" class="w-full h-2 bg-white/5 rounded-full overflow-hidden">
+                        <div id="progressFill"
+                             class="h-full bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.6)] transition-all duration-1000"
+                             style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成交订单记录 -->
+        <div class="glass p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="text-sm font-black uppercase tracking-[0.2em]">
+                    <i class="fas fa-list-check text-indigo-500 mr-2"></i>
+                    成交订单记录
+                </h4>
+                <div class="flex items-center gap-3">
+                    <span class="text-xs text-slate-400" id="orderCount">0 笔订单</span>
+                    <button onclick="APP.UIManager.showStatsSummary()"
+                            class="btn btn-sm bg-indigo-500/10 text-indigo-400">
+                        <i class="fas fa-chart-pie"></i> 状态统计
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                    <tr class="text-xs text-slate-400 border-b border-white/10 text-center">
+                        <th class="pb-2 text-left">时间</th>
+                        <th class="pb-2 text-left">客户</th>
+                        <th class="pb-2 text-left">数量</th>
+                        <th class="pb-2 text-left">单价</th>
+                        <th class="pb-2 text-left">总额(USD)</th>
+                        <th class="pb-2 text-left">状态</th>
+                        <th class="pb-2 text-left">利润(CNY)</th>
+                        <th class="pb-2 text-left">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="orderList">
+                    <!-- 由JS动态生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 详细核算分析列表 -->
+        <div class="min-w-0">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+                <h4 class="text-sm font-black uppercase tracking-[0.2em]">P&L Statement <span class="text-indigo-600">月度损益分析</span>
+                </h4>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <div class="glass p-0 overflow-hidden flex flex-col">
+                    <div class="bg-gradient-to-r from-indigo-900/40 to-slate-900/40 p-5 border-b border-white/5">
+                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-1 tip-box cursor-help">
+                            Total Revenue 总营收
+                            <i class="fas fa-info-circle ml-1"></i>
+                            <span class="tip-content">本月【已发货/已完成】订单的总销售额。<br>注意：未发货的预订单不计入此处。</span>
+                        </p>
+                        <div class="flex justify-between items-baseline">
+                            <h3 class="text-2xl font-black mono text-white" id="tableTotalRevenueCNY">￥0</h3>
+                            <span class="text-sm font-mono text-slate-400" id="tableTotalRevenueUSD">$0</span>
+                        </div>
+                    </div>
+
+                    <div class="p-5 flex-1 space-y-4">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-2 tip-box cursor-help">
+                            ➖ 履约硬成本 (COGS)
+                            <i class="fas fa-info-circle ml-1"></i>
+                            <span class="tip-content">Cost of Goods Sold.<br>卖这幅画直接产生的成本：画本身、运费、包装、税。卖一幅产生一幅，不卖不产生。</span>
+                        </p>
+
+                        <div class="flex justify-between items-center text-sm group">
+                            <span class="text-slate-400 group-hover:text-slate-200 transition-colors"><i
+                                    class="fas fa-palette w-5 opacity-50"></i>采购成本</span>
+                            <span class="font-mono font-bold text-slate-300" id="tableCanvasCost">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm group">
+                            <span class="text-slate-400 group-hover:text-slate-200 transition-colors"><i
+                                    class="fas fa-box w-5 opacity-50"></i>包装杂费</span>
+                            <span class="font-mono font-bold text-slate-300" id="tablePackCost">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm group">
+                            <span class="text-slate-400 group-hover:text-slate-200 transition-colors"><i
+                                    class="fas fa-truck w-5 opacity-50"></i>国内物流</span>
+                            <span class="font-mono font-bold text-slate-300" id="tableDomesticCost">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm group">
+                            <span class="text-slate-400 group-hover:text-slate-200 transition-colors"><i
+                                    class="fas fa-plane w-5 opacity-50"></i>国际物流</span>
+                            <span class="font-mono font-bold text-sky-300/80" id="tableShippingCost">￥0</span>
+                        </div>
+
+                        <div class="h-px bg-white/5 my-2"></div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center text-xs tip-box w-full">
+                                <span class="text-amber-500/60 cursor-help">🇪🇺 欧盟操作费 (?)<span class="tip-content">欧盟对非欧盟包裹征收的强制处理费(约3欧元/件)。</span></span>
+                                <span class="font-mono text-amber-500/60" id="tableEuFee">￥0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs tip-box w-full">
+                                <span class="text-emerald-500/60 cursor-help">🛡️ 物流保险费 (?)<span
+                                        class="tip-content">为防止丢件而购买的商业保险（CIP/DDP模式）。</span></span>
+                                <span class="font-mono text-emerald-500/60" id="tableInsurance">￥0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-xs tip-box w-full">
+                                <span class="text-rose-500/60 cursor-help">🏛️ 预估税费 (DDP) (?)<span
+                                        class="tip-content">DDP模式下，帮客户代缴的进口关税和增值税。</span></span>
+                                <span class="font-mono text-rose-500/60" id="tableTaxCost">￥0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/30 p-4 border-t border-white/5 flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-400">总经营成本 (Total Cost)</span>
+                        <span class="font-mono font-bold text-rose-400" id="tableTotalCost">￥0</span>
+                    </div>
+                </div>
+
+                <div class="glass p-0 overflow-hidden flex flex-col">
+                    <div class="p-5 flex-1 space-y-4">
+                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-2 tip-box cursor-help">
+                            ➖ 运营与营销支出 (OpEx)
+                            <i class="fas fa-info-circle ml-1"></i>
+                            <span class="tip-content">Operating Expense.<br>为了维持公司运转而花的钱：广告、房租、工资。无论卖不卖货，这笔钱都得花。</span>
+                        </p>
+
+                        <div class="flex justify-between items-center text-sm group">
+                            <span class="text-slate-400 group-hover:text-slate-200 transition-colors"><i
+                                    class="fas fa-bullhorn w-5 opacity-50"></i>广告推广</span>
+                            <span class="font-mono font-bold text-amber-400" id="tableAdCost">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm group">
+                            <span class="text-slate-400 group-hover:text-slate-200 transition-colors"><i
+                                    class="fas fa-building w-5 opacity-50"></i>固定开支 (房/人)</span>
+                            <span class="font-mono font-bold text-slate-300" id="tableFixedCost">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm group">
+                            <span class="text-slate-400 group-hover:text-slate-200 transition-colors">
+                                <i class="fas fa-users w-5 opacity-50"></i>业务提成 (<span id="tableCommissionRate"
+                                                                                           class="text-xs">0</span>)
+                            </span>
+                            <span class="font-mono font-bold text-slate-300" id="tableCommission">￥0</span>
+                        </div>
+
+                        <div class="h-8"></div>
+                        <div class="bg-white/5 rounded-lg p-3 border border-white/5 tip-box w-full">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-xs text-slate-400 cursor-help border-b border-dashed border-slate-600">税前经营利润 (?)</span>
+                                <span class="font-mono font-bold text-slate-200" id="tableProfitBeforeTax">￥0</span>
+                            </div>
+                            <span class="tip-content">Gross Operating Profit.<br>营收 - 硬成本 - 软支出 (但在扣除提成前)。</span>
+                            <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                <div class="h-full bg-slate-500 w-full opacity-30"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-emerald-900/40 to-slate-900/40 p-6 border-t border-emerald-500/20 mt-auto tip-box cursor-help relative group">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1">Net
+                                    Profit 最终净利润</p>
+                                <p class="text-xs text-emerald-500/60">已扣除所有隐形支出</p>
+                            </div>
+                            <h2 class="text-4xl font-black mono text-emerald-400 stat-glow" id="tableFinalProfit">
+                                ￥0</h2>
+                        </div>
+                        <span class="tip-content bottom-full mb-2 left-1/2 -translate-x-1/2">
+                            老板真正落袋的钱！<br>
+                            = 营收 - 所有成本 - 所有支出 - 提成
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- 成交订单模态框 -->
+<div class="modal-overlay" id="dealModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="text-lg font-black"><i class="fas fa-handshake text-emerald-500 mr-2"></i>成交订单录入</h3>
+            <button class="text-sky-200 hover:text-slate-300" onclick="APP.UIManager.closeDealModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4 relative">
+                    <div>
+                        <label class="label-sm">客户姓名 <span class="text-indigo-400">(搜)</span></label>
+                        <input type="text" id="clientName" class="input-dark" placeholder="输入名字/电话自动检索..."
+                               autocomplete="off">
+                        <div id="crmSuggestions"
+                             class="absolute top-16 left-0 w-full bg-slate-800 border border-indigo-500/30 rounded-xl shadow-2xl z-50 hidden max-h-48 overflow-y-auto">
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <label class="label-sm">联系电话 <span class="text-indigo-400">(搜)</span></label>
+                        <input type="tel" id="clientPhone" class="input-dark" placeholder="输入电话/名字..."
+                               autocomplete="off">
+                        <div id="crmSuggestionsPhone"
+                             class="absolute top-16 left-0 w-full bg-slate-800 border border-indigo-500/30 rounded-xl shadow-2xl z-50 hidden max-h-48 overflow-y-auto">
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label-sm">客户邮箱</label>
+                        <input type="email" id="clientEmail" class="input-dark" placeholder="自动填充">
+                    </div>
+                    <div>
+                        <label class="label-sm text-indigo-400">归属国家 (自动同步)</label>
+                        <select id="dealCountry" class="input-dark opacity-80 cursor-not-allowed" disabled>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="label-sm">订单数量 (幅)</label>
+                        <input type="number" min=0 id="dealQty" class="input-dark" value="10">
+                    </div>
+                    <div>
+                        <label class="label-sm">成交单价 (USD)</label>
+                        <input type="number" min=0 id="dealPrice" class="input-dark" step="0.1">
+                    </div>
+                    <div>
+                        <label class="label-sm">实收定金 (USD)</label>
+                        <input type="number" min=0 id="actualDeposit" class="input-dark" step="0.1">
+                    </div>
+                </div>
+                <div>
+                    <label class="label-sm">订单备注</label>
+                    <textarea id="dealNotes" class="input-dark" rows="3"
+                              placeholder="订单特殊要求或备注信息"></textarea>
+                </div>
+                <div class="bg-slate-900/30 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-sm font-bold text-slate-400">订单信息</span>
+                        <span class="text-xs text-sky-200" id="orderTime"></span>
+                    </div>
+                    <div class="space-y-1 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-sky-200">订单编号:</span>
+                            <span class="font-mono font-bold" id="orderId">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sky-200">订单总额:</span>
+                            <span class="font-bold text-emerald-400" id="dealTotal">$0.0</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-4 text-xs bg-white/5 p-2 rounded hidden"
+                             id="dealExtraInfo">
+                            <span class="text-slate-400" id="dealExtraLabel">额外费用 (税+保)</span>
+                            <span class="font-mono text-orange-300" id="dealExtraCost">￥0.00</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sky-200">应收定金:</span>
+                            <span class="font-bold text-amber-400" id="dealExpectedDeposit">$0.0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-sky-200">预计利润:</span>
+                            <span class="font-bold" id="dealProfit">￥0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="APP.UIManager.closeDealModal()">取消</button>
+            <button class="btn btn-success" onclick="APP.UIManager.saveDeal()">
+                <i class="fas fa-save mr-2"></i>保存订单
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="statsModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="text-lg font-black"><i class="fas fa-chart-pie text-indigo-500 mr-2"></i>订单状态统计</h3>
+            <button class="text-sky-200 hover:text-slate-300" onclick="APP.UIManager.closeStatsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="space-y-6">
+                <!-- 状态分布饼图 -->
+                <div class="h-64">
+                    <canvas id="statusChart"></canvas>
+                </div>
+
+                <!-- 详细统计 -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="stat-card bg-emerald-500/10 p-4 rounded-xl">
+                        <div class="text-xs text-emerald-400 mb-1">已完成订单</div>
+                        <div class="text-2xl font-black" id="statCompletedCount">0</div>
+                        <div class="text-xs text-slate-400" id="statCompletedAmount">$0</div>
+                    </div>
+                    <div class="stat-card bg-amber-500/10 p-4 rounded-xl">
+                        <div class="text-xs text-amber-400 mb-1">已发货待收款</div>
+                        <div class="text-2xl font-black" id="statShippedUnpaidCount">0</div>
+                        <div class="text-xs text-slate-400" id="statShippedUnpaidAmount">$0</div>
+                    </div>
+                    <div class="stat-card bg-blue-500/10 p-4 rounded-xl">
+                        <div class="text-xs text-blue-400 mb-1">待发货已收款</div>
+                        <div class="text-2xl font-black" id="statUnshippedPaidCount">0</div>
+                        <div class="text-xs text-slate-400" id="statUnshippedPaidAmount">$0</div>
+                    </div>
+                    <div class="stat-card bg-slate-500/10 p-4 rounded-xl">
+                        <div class="text-xs text-slate-400 mb-1">预订单</div>
+                        <div class="text-2xl font-black" id="statPreorderCount">0</div>
+                        <div class="text-xs text-slate-400" id="statPreorderAmount">$0</div>
+                    </div>
+                </div>
+
+                <!-- 财务摘要 -->
+                <div class="border-t border-white/10 pt-4">
+                    <h4 class="text-sm font-bold mb-3">财务摘要</h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-400">实际已实现利润:</span>
+                            <span class="font-bold text-emerald-400" id="statActualProfit">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-400">待实现利润:</span>
+                            <span class="font-bold text-amber-400" id="statPotentialProfit">￥0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-slate-400">总潜在利润:</span>
+                            <span class="font-bold text-indigo-400" id="statTotalPotential">￥0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="APP.UIManager.closeStatsModal()">关闭</button>
+            <button class="btn btn-primary" onclick="APP.UIManager.exportStatusReport()">
+                <i class="fas fa-download mr-2"></i>导出报告
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="configModal" class="fixed inset-0 bg-black/80 hidden z-[2000] flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-[#0F172A] border border-white/10 rounded-2xl w-[900px] max-h-[90vh] flex flex-col shadow-2xl">
+            <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/[0.02]">
+                <div>
+                    <h3 class="text-xl font-black text-white flex items-center gap-2">
+                        <i class="fas fa-globe-americas text-emerald-500"></i> 全球市场配置
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">Config Manager v1.0</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="ConfigManager.resetToDefault()" class="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-500 text-xs font-bold hover:bg-rose-500 hover:text-white transition">
+                        <i class="fas fa-undo mr-1"></i> 重置默认
+                    </button>
+                    <button onclick="ConfigManager.closeModal()" class="text-slate-400 hover:text-white transition"><i class="fas fa-times text-lg"></i></button>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-[#0F172A] z-10 shadow-md">
+                        <tr class="text-xs text-slate-500 border-b border-white/10">
+                            <th class="pb-3 pl-4">CODE</th>
+                            <th class="pb-3">国家/地区</th>
+                            <th class="pb-3">VAT</th>
+                            <th class="pb-3">Duty</th>
+                            <th class="pb-3">Timezone</th>
+                            <th class="pb-3 text-right pr-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="configTableBody" class="text-sm text-slate-300 divide-y divide-white/5"></tbody>
+                </table>
+            </div>
+
+            <div class="p-6 border-t border-white/10 bg-[#020617]/50">
+                <div class="grid grid-cols-6 gap-3 mb-4">
+                    <input type="text" id="cfgCode" placeholder="代码 (USA)" class="input-dark text-xs uppercase font-bold">
+                    <input type="text" id="cfgName" placeholder="名称 (美国)" class="input-dark text-xs">
+                    <input type="number" id="cfgVat" placeholder="VAT (0.2)" class="input-dark text-xs" step="0.01">
+                    <input type="number" id="cfgDuty" placeholder="Duty (0.1)" class="input-dark text-xs" step="0.01">
+                    <div class="col-span-2 flex gap-2">
+                         <input type="text" id="cfgZone" placeholder="时区 (America/New_York)" class="input-dark text-xs flex-1">
+                         <input type="text" id="cfgFlag" placeholder="🏳️" class="input-dark text-xs w-12 text-center">
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button onclick="ConfigManager.saveItem()" class="px-6 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2">
+                        <i class="fas fa-save"></i> 保存配置
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- 引入重构后的JS模块 -->
+<script src="js/config.js"></script>
+<script src="js/config-manager.js"></script>
+<script src="js/math-utils.js"></script>
+<script src="js/state-manager.js"></script>
+<script src="js/calculation-engine.js"></script>
+<script src="js/order-manager.js"></script>
+<script src="js/payment-manager.js"></script>
+<script src="js/calculation-manager.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

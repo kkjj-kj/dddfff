@@ -1,0 +1,20 @@
+{
+  "clients": [
+    {
+      "name": "未知客户",
+      "phone": "未知客户",
+      "country": "Unknown",
+      "avatar": "https://media-tpe1-1.cdn.whatsapp.net/v/t61.24694-24/620160314_1903215080278675_8044461595311802837_n.jpg?stp=dst-jpg_s96x96_tt6&ccb=11-4&oh=01_Q5Aa3wGl_Zhgs-nWkLvg3YWF_3iEaWyl4B5uztGE8HqaHB-eEw&oe=6999DD47&_nc_sid=5e03e0&_nc_cat=109",
+      "source": "WhatsApp Plugin",
+      "level": "new",
+      "tags": [
+        "插件导入"
+      ],
+      "id": "C1770832538346",
+      "createdAt": "2026-02-11T17:55:38.346Z",
+      "updatedAt": "2026-02-11T18:04:42.524Z"
+    }
+  ],
+  "orders": [],
+  "logs": []
+}

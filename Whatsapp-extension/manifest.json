@@ -1,0 +1,39 @@
+{
+    "manifest_version": 3,
+    "name": "WhatsApp-AI助手",
+    "version": "1.0.0",
+    "description": "自动抓取客户信息，一键同步至CRM 系统。",
+    "permissions": [
+        "storage",
+        "activeTab",
+        "scripting"
+    ],
+    "host_permissions": [
+        "https://web.whatsapp.com/*",
+        "http://*/*",
+        "https://*/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "https://web.whatsapp.com/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "run_at": "document_idle"
+        }
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "WhatsApp-AI助手"
+    },
+    "icons": {
+        "16": "icons/16x16.png",
+        "48": "icons/48x48.png",
+        "128": "icons/128x128.png"
+    }
+}

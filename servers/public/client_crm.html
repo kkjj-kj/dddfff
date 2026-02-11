@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大芬战友 - 客户资产指挥部</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/crm.css">
+</head>
+<body class="bg-[#020617] text-slate-200 h-screen w-screen overflow-hidden flex flex-col">
+
+<!-- 顶部导航条 -->
+<header class="h-12 border-b border-white/5 flex justify-between items-center px-4 bg-[#0F172A] shrink-0 z-50">
+    <div class="flex items-center gap-3">
+        <div class="w-7 h-7 bg-indigo-600 rounded flex items-center justify-center font-black text-lg italic text-white shadow-lg">
+            D
+        </div>
+        <h1 class="text-xs font-black text-white tracking-widest uppercase">CLIENT COMMANDER <span
+                class="text-indigo-500 ml-1">v3.0</span></h1>
+    </div>
+    <div>
+        <a href="index.html"
+           class="text-xs font-bold text-slate-400 hover:text-white flex items-center gap-2 transition bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+            <i class="fas fa-calculator"></i> 返回精算台
+        </a>
+    </div>
+</header>
+
+<!-- 主工作区 (全屏 Grid) -->
+<main class="flex-1 grid grid-cols-[320px_1fr_360px] divide-x divide-white/5 overflow-hidden">
+
+    <!-- =======================
+         1. 左侧：客户名录 (List)
+         ======================= -->
+    <aside class="flex flex-col bg-[#0F172A]/50 h-full">
+        <!-- 搜索与筛选 -->
+        <div class="p-3 border-b border-white/5 space-y-3">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                <input type="text" id="searchInput" placeholder="搜索姓名 / 电话 / 标签..."
+                       class="w-full bg-black/20 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-200 outline-none focus:border-indigo-500 transition-all">
+            </div>
+            <button onclick="CRM.openModal()"
+                    class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition shadow-lg flex items-center justify-center gap-2">
+                <i class="fas fa-user-plus"></i> 录入新客户
+            </button>
+        </div>
+
+        <!-- 列表容器 -->
+        <div id="clientList" class="flex-1 overflow-y-auto custom-scrollbar">
+            <!-- JS 渲染列表项 -->
+        </div>
+
+        <div class="p-2 border-t border-white/5 text-[10px] text-slate-500 text-center" id="clientCount">
+            Loading...
+        </div>
+    </aside>
+
+    <!-- =======================
+         2. 中间：沟通与情报 (Chat & Context)
+         ======================= -->
+    <section id="workspaceCenter" class="flex flex-col bg-[#020617] h-full relative">
+
+        <!-- 空状态 -->
+        <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-slate-600 z-10">
+            <i class="far fa-comments text-6xl mb-4 opacity-20"></i>
+            <p class="text-xs font-mono uppercase tracking-widest opacity-50">选择客户以加载情报</p>
+        </div>
+
+        <!-- 激活状态容器 -->
+        <div id="activeChatPanel" class="hidden flex-col h-full z-20">
+
+            <!-- 客户头卡 (Header) -->
+            <div class="h-16 border-b border-white/5 flex justify-between items-center px-6 bg-[#0F172A]">
+                <div class="flex items-center gap-4">
+                    <div id="headerAvatar"
+                         class="w-10 h-10 rounded bg-indigo-600 flex items-center justify-center font-bold text-white text-lg">
+                        ?
+                    </div>
+                    <div>
+                        <h2 id="headerName" class="text-sm font-bold text-white">---</h2>
+                        <div class="flex items-center gap-2 text-[10px] text-slate-400">
+                            <span id="headerCountry">🇺🇸 USA</span>
+                            <span class="w-px h-3 bg-white/10"></span>
+                            <span id="headerTime" class="font-mono">00:00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <a id="headerWaLink" href="#" target="_blank"
+                       class="hidden px-3 py-1.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500 hover:text-white transition flex items-center gap-2">
+                        <i class="fab fa-whatsapp"></i> Chat
+                    </a>
+                    <button onclick="CRM.editCurrent()"
+                            class="p-2 text-slate-400 hover:text-white bg-white/5 rounded border border-white/5"><i
+                            class="fas fa-pen"></i></button>
+                </div>
+            </div>
+
+            <!-- 聊天记录展示区 -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col" id="chatHistoryContainer">
+                <!-- JS 渲染气泡 -->
+            </div>
+
+            <!-- AI 分析工具栏 -->
+            <div class="h-10 border-t border-white/5 bg-[#0F172A]/50 flex items-center px-4 gap-3 justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase">插件数据:</span>
+                    <button onclick="CRM.analyzeChat()"
+                            class="btn-ai text-[10px] px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500 hover:text-white transition flex items-center gap-1">
+                        <i class="fas fa-brain"></i> 分析本页意图
+                    </button>
+                </div>
+                <div class="text-[9px] text-slate-600">上次同步: 刚刚</div>
+            </div>
+
+            <!-- 话术生成输入框 -->
+            <div class="h-48 border-t border-white/5 bg-[#0F172A] p-4 flex flex-col gap-2">
+                    <textarea id="aiInput"
+                              class="flex-1 bg-[#020617] border border-white/10 rounded-lg p-3 text-xs text-slate-200 outline-none focus:border-indigo-500 resize-none placeholder:text-slate-600"
+                              placeholder="在此输入中文意图（例如：同意降价，但要求50%定金）..."></textarea>
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] text-slate-500"><i class="fas fa-magic mr-1 text-amber-500"></i>按 Ctrl+Enter 立即生成</span>
+                    <button onclick="CRM.generateReply()"
+                            class="btn-ai px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded transition shadow-lg flex items-center gap-2">
+                        生成地道回复 <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =======================
+         3. 右侧：决策与数据 (Decision & Data)
+         ======================= -->
+    <aside class="flex flex-col bg-[#0F172A] h-full overflow-y-auto custom-scrollbar border-l border-white/5">
+
+        <!-- A. 意向雷达 (Visual) -->
+        <div class="p-5 border-b border-white/5">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xs font-black text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fas fa-satellite-dish"></i> 意向雷达
+                </h3>
+                <span id="radarScore" class="text-3xl font-mono font-black text-slate-600">0%</span>
+            </div>
+            <!-- 4个参数槽 -->
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <div id="slot-qty" class="radar-slot">
+                    <span class="label">数量</span>
+                    <span class="value">---</span>
+                    <div class="bar">
+                        <div class="bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div id="slot-size" class="radar-slot">
+                    <span class="label">尺寸</span>
+                    <span class="value">---</span>
+                    <div class="bar">
+                        <div class="bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div id="slot-style" class="radar-slot">
+                    <span class="label">工艺</span>
+                    <span class="value">---</span>
+                    <div class="bar">
+                        <div class="bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div id="slot-country" class="radar-slot">
+                    <span class="label">国家</span>
+                    <span class="value">---</span>
+                    <div class="bar">
+                        <div class="bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- 信号日志 -->
+            <div class="bg-black/20 rounded p-2 text-[10px] text-slate-400 font-mono h-24 overflow-y-auto"
+                 id="aiSignalLog">
+                <div class="opacity-50 italic text-center mt-2">等待分析...</div>
+            </div>
+        </div>
+
+        <!-- B. 实时精算 (Calc) -->
+        <div class="p-5 border-b border-white/5 bg-indigo-900/5">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-xs font-black text-slate-400 uppercase tracking-wider">利润精算预演</h3>
+                <span class="text-[9px] bg-white/5 px-1.5 py-0.5 rounded text-slate-500">Margin: 35%</span>
+            </div>
+            <div class="space-y-4">
+                <div class="flex justify-between items-end">
+                    <div>
+                        <p class="text-[10px] text-slate-500 uppercase font-bold">建议单价 (USD)</p>
+                        <p id="calcPrice" class="text-2xl font-black font-mono text-white">$ --</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] text-slate-500 uppercase font-bold">单幅净利 (CNY)</p>
+                        <p id="calcProfit" class="text-xl font-black font-mono text-emerald-400">￥ --</p>
+                    </div>
+                </div>
+                <div class="pt-3 border-t border-white/5 flex justify-between text-[10px]">
+                    <span class="text-slate-500">总订单额</span>
+                    <span id="calcTotal" class="text-slate-300 font-mono font-bold">$ --</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- C. 历史订单 -->
+        <div class="p-5 flex-1">
+            <h3 class="text-xs font-black text-slate-500 uppercase tracking-wider mb-3">历史成交</h3>
+            <div id="historyList" class="space-y-2">
+                <!-- JS 渲染 -->
+            </div>
+        </div>
+
+    </aside>
+</main>
+
+<!-- 录入弹窗 -->
+<div id="clientModal"
+     class="fixed inset-0 bg-black/90 hidden z-[100] flex items-center justify-center backdrop-blur-sm">
+    <div class="bg-[#0F172A] border border-white/10 rounded-2xl w-[500px] shadow-2xl p-6 space-y-4">
+        <div class="flex justify-between items-center border-b border-white/5 pb-4">
+            <h3 class="text-lg font-black text-white italic">录入新客户</h3>
+            <button onclick="CRM.closeModal()" class="text-slate-500 hover:text-white"><i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <input type="hidden" id="editId">
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">姓名</label>
+                <input type="text" id="cName" class="input-dark font-bold text-sm">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">等级</label>
+                <select id="cLevel" class="input-dark text-sm">
+                    <option value="new">🟢 新客</option>
+                    <option value="gold">🟡 VIP</option>
+                    <option value="b2b">🟣 批发商</option>
+                    <option value="black">⚫ 黑名单</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">电话 (WhatsApp)</label>
+                <input type="text" id="cPhone" class="input-dark font-mono text-sm" placeholder="纯数字">
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">邮箱</label>
+                <input type="text" id="cEmail" class="input-dark font-mono text-sm">
+            </div>
+        </div>
+
+        <div>
+            <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">国家</label>
+            <select id="cCountry" class="input-dark font-bold text-sm"></select>
+        </div>
+
+        <div>
+            <label class="text-[10px] font-bold text-slate-500 uppercase mb-1 block">标签 (逗号分隔)</label>
+            <input type="text" id="cTags" class="input-dark text-sm" placeholder="大画, 抽象, DDP...">
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-white/5">
+            <button onclick="CRM.closeModal()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-white">
+                取消
+            </button>
+            <button onclick="CRM.saveClient()"
+                    class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition shadow-lg">
+                保存
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/math-utils.js"></script>
+<script src="js/state-manager.js"></script>
+<script src="js/calculation-engine.js"></script>
+<script src="js/main.js"></script>
+<script src="js/crm-manager.js"></script>
+</body>
+</html>
