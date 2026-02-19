@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6fb4a49d-04a8-4904-847a-c47254819a00" name="更改" comment="init" />
+    <list default="true" id="6fb4a49d-04a8-4904-847a-c47254819a00" name="更改" comment="init">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Whatsapp-extension/content.js" beforeDir="false" afterPath="$PROJECT_DIR$/Whatsapp-extension/content.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Whatsapp-extension/popup.html" beforeDir="false" afterPath="$PROJECT_DIR$/Whatsapp-extension/popup.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Whatsapp-extension/popup.js" beforeDir="false" afterPath="$PROJECT_DIR$/Whatsapp-extension/popup.js" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -34,12 +40,12 @@
     &quot;assignee&quot;: &quot;kkjj-kj&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;git@github.com:kkjj-kj/dafen-crm.git&quot;,
-    &quot;accountId&quot;: &quot;ccb510a5-210a-481e-b221-81dead16d41e&quot;
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "git@github.com:kkjj-kj/dddfff.git",
+    "accountId": "ccb510a5-210a-481e-b221-81dead16d41e"
   }
-}</component>
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 2
 }</component>
@@ -63,7 +69,7 @@
     &quot;Python.main_plan.executor&quot;: &quot;Run&quot;,
     &quot;Python.提取密码.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;24.13.0&quot;,
     &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;24.10.13&quot;,
     &quot;last_opened_file_path&quot;: &quot;D:/code/dafenarts&quot;,
@@ -158,7 +164,8 @@
       <workItem from="1770637669246" duration="27959000" />
       <workItem from="1770781661541" duration="19802000" />
       <workItem from="1770833253459" duration="2997000" />
-      <workItem from="1770836288440" duration="479000" />
+      <workItem from="1770836288440" duration="1638000" />
+      <workItem from="1771479378034" duration="624000" />
     </task>
     <task id="LOCAL-00001" summary="init">
       <option name="closed" value="true" />

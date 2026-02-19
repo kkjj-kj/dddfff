@@ -1,37 +1,45 @@
+// 简单的 popup.js 更新逻辑参考
 document.addEventListener('DOMContentLoaded', () => {
-    const input = document.getElementById('serverIp');
-    const saveBtn = document.getElementById('saveBtn');
-    const openBtn = document.getElementById('openCrm');
-    const msg = document.getElementById('msg');
+    // 字段 ID 列表
+    const fields = ['serverIp', 'modelSelect', 'apiKey', 'personaSelect'];
 
-    // 1. 初始化：读取已保存的 IP，如果没有则默认为 localhost:3000
-    chrome.storage.local.get(['server_host'], (result) => {
-        const host = result.server_host || 'localhost:3000';
-        input.value = host;
-        updateLinks(host);
+    // 1. 加载配置
+    chrome.storage.local.get(fields, (data) => {
+        fields.forEach(id => {
+            if (data[id]) document.getElementById(id).value = data[id];
+        });
+        // 默认值处理
+        if (!document.getElementById('serverIp').value) {
+            document.getElementById('serverIp').value = '127.0.0.1:3000';
+        }
+        updateLinks();
     });
 
     // 2. 保存配置
-    saveBtn.addEventListener('click', () => {
-        let host = input.value.trim();
-        // 简单的格式清理：去掉 http:// 前缀，只存 IP:PORT，方便统一处理
-        host = host.replace(/^https?:\/\//, '').replace(/\/$/, '');
-        
-        if(host) {
-            chrome.storage.local.set({ 'server_host': host }, () => {
-                msg.textContent = "✅ 配置已保存，连接中...";
-                updateLinks(host);
-                
-                // 3. 测试连接 (可选优化)
-                fetch(`http://${host}/`)
-                    .then(() => msg.textContent = "✅ 服务器连接成功！")
-                    .catch(() => msg.textContent = "⚠️ 保存成功，但无法连接服务器");
-            });
-        }
+    document.getElementById('saveBtn').addEventListener('click', () => {
+        const config = {};
+        fields.forEach(id => {
+            config[id] = document.getElementById(id).value.trim();
+        });
+
+        // 简单的格式清理
+        config.serverIp = config.serverIp.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+        chrome.storage.local.set(config, () => {
+            const msg = document.getElementById('msg');
+            msg.textContent = "✅ 配置已保存，战术面板已更新";
+            msg.className = "msg-success";
+            updateLinks();
+
+            setTimeout(() => {
+                msg.textContent = "";
+                msg.className = "";
+            }, 2000);
+        });
     });
 
-    // 更新按钮链接
-    function updateLinks(host) {
-        openBtn.href = `http://${host}/client_crm.html`;
+    function updateLinks() {
+        const host = document.getElementById('serverIp').value || '127.0.0.1:3000';
+        document.getElementById('openCrm').href = `http://${host}/client_crm.html`;
     }
 });
